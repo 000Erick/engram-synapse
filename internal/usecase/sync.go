@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/000Erick/synapse/internal/port"
+	"github.com/000Erick/engram-synapse/internal/port"
 )
 
 // SyncResult holds the counts from a sync run.

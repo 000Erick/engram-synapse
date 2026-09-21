@@ -14,7 +14,7 @@ import (
 
 	_ "modernc.org/sqlite" // registers the "sqlite" driver; pure Go, no CGO
 
-	"github.com/000Erick/synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/domain"
 )
 
 // SQLiteVectorStore is a modernc.org/sqlite backed implementation of

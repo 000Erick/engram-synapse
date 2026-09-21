@@ -97,7 +97,7 @@ Synapse is **pure Go** — no CGO, no C compiler, no build tags. The standard on
 **Option A — install with Go (recommended):**
 
 ```sh
-go install github.com/000Erick/synapse/cmd/synapse@latest
+go install github.com/000Erick/engram-synapse/cmd/synapse@latest
 ```
 
 The binary lands in `$(go env GOPATH)/bin/synapse`.
@@ -117,12 +117,12 @@ scoop install synapse
 
 **Option D — Download a prebuilt binary:**
 
-Prebuilt macOS / Linux / Windows binaries (amd64 + arm64) are published on the [Releases](https://github.com/000Erick/synapse/releases) page — download and run, no toolchain required.
+Prebuilt macOS / Linux / Windows binaries (amd64 + arm64) are published on the [Releases](https://github.com/000Erick/engram-synapse/releases) page — download and run, no toolchain required.
 
 **Option E — build from source:**
 
 ```sh
-git clone https://github.com/000Erick/synapse.git
+git clone https://github.com/000Erick/engram-synapse.git
 cd synapse
 cp .env.example .env      # then add your OPENAI_API_KEY
 make build                # produces ./synapse

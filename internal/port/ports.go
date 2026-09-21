@@ -3,7 +3,7 @@ package port
 import (
 	"context"
 
-	"github.com/000Erick/synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/domain"
 )
 
 // EngramReader provides read-only access to Engram observations and FTS5 search.

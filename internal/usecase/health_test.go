@@ -8,7 +8,7 @@ import (
 
 	_ "modernc.org/sqlite" // pure-Go driver; no CGO needed for tests
 
-	"github.com/000Erick/synapse/internal/usecase"
+	"github.com/000Erick/engram-synapse/internal/usecase"
 )
 
 func createTempDB(t *testing.T, name string) string {

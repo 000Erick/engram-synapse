@@ -9,12 +9,12 @@ import (
 	"github.com/joho/godotenv"
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/000Erick/synapse/internal/config"
-	"github.com/000Erick/synapse/internal/embed"
-	"github.com/000Erick/synapse/internal/engram"
-	"github.com/000Erick/synapse/internal/mcp"
-	"github.com/000Erick/synapse/internal/port"
-	"github.com/000Erick/synapse/internal/store"
+	"github.com/000Erick/engram-synapse/internal/config"
+	"github.com/000Erick/engram-synapse/internal/embed"
+	"github.com/000Erick/engram-synapse/internal/engram"
+	"github.com/000Erick/engram-synapse/internal/mcp"
+	"github.com/000Erick/engram-synapse/internal/port"
+	"github.com/000Erick/engram-synapse/internal/store"
 )
 
 // version is set at build time via ldflags: -X main.version=vX.Y.Z

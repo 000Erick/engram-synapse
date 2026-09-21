@@ -8,7 +8,7 @@ import (
 
 	_ "modernc.org/sqlite" // pure-Go driver; no CGO needed for tests
 
-	"github.com/000Erick/synapse/internal/engram"
+	"github.com/000Erick/engram-synapse/internal/engram"
 )
 
 // seedEngram creates a temp engram.db with the Engram schema and seed data.

@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/000Erick/synapse/internal/domain"
-	"github.com/000Erick/synapse/internal/embed"
-	"github.com/000Erick/synapse/internal/store"
+	"github.com/000Erick/engram-synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/embed"
+	"github.com/000Erick/engram-synapse/internal/store"
 )
 
 func newStore(t *testing.T) *store.SQLiteVectorStore {

@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/000Erick/synapse/internal/domain"
-	"github.com/000Erick/synapse/internal/embed"
+	"github.com/000Erick/engram-synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/embed"
 )
 
 // TestSearch_SyncCure_EmbedsFTSHitMissingVector is the core self-healing test:

@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 
-	"github.com/000Erick/synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/domain"
 )
 
 // NoopVectorStore is a stub that satisfies the VectorStore port without

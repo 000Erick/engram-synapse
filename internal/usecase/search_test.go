@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/000Erick/synapse/internal/domain"
-	"github.com/000Erick/synapse/internal/embed"
+	"github.com/000Erick/engram-synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/embed"
 )
 
 func TestSearch_EmptyQueryErrors(t *testing.T) {

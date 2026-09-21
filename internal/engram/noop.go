@@ -3,7 +3,7 @@ package engram
 import (
 	"context"
 
-	"github.com/000Erick/synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/domain"
 )
 
 // NoopEngramReader is a graceful-degradation stub used when engram.db is

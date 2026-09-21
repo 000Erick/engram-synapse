@@ -51,7 +51,7 @@ homebrew_casks:
       owner: 000Erick
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
-    homepage: https://github.com/000Erick/synapse
+    homepage: https://github.com/000Erick/engram-synapse
     description: "Semantic vector search for Engram memory — pure Go, MCP-native."
     # Strip the macOS quarantine flag so the unsigned binary runs without a Gatekeeper prompt.
     hooks:
@@ -66,6 +66,6 @@ scoops:
       owner: 000Erick
       name: scoop-bucket
       token: "{{ .Env.SCOOP_GITHUB_TOKEN }}"
-    homepage: https://github.com/000Erick/synapse
+    homepage: https://github.com/000Erick/engram-synapse
     description: "Semantic vector search for Engram memory — pure Go, MCP-native."
     license: MIT

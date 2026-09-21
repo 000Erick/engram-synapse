@@ -15,7 +15,7 @@ Create a **classic PAT** with `repo` scope (or a fine-grained token with **Conte
 
 ### 3. Add the token as repository secrets on `synapse`
 
-In `000Erick/synapse` → Settings → Secrets and variables → Actions, add:
+In `000Erick/engram-synapse` → Settings → Secrets and variables → Actions, add:
 
 | Secret name | Value |
 |---|---|
@@ -50,11 +50,11 @@ scoop bucket add 000Erick https://github.com/000Erick/scoop-bucket
 scoop install synapse
 
 # Go toolchain
-go install github.com/000Erick/synapse/cmd/synapse@latest
+go install github.com/000Erick/engram-synapse/cmd/synapse@latest
 
 # Direct download
 # Download the binary for your platform from:
-# https://github.com/000Erick/synapse/releases
+# https://github.com/000Erick/engram-synapse/releases
 ```
 
 ## ⚠️ Important: tap/bucket repos must exist before the first tag

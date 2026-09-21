@@ -3,7 +3,7 @@ package domain_test
 import (
 	"testing"
 
-	"github.com/000Erick/synapse/internal/domain"
+	"github.com/000Erick/engram-synapse/internal/domain"
 )
 
 func TestRRF_TwoLists_FusedOrder(t *testing.T) {

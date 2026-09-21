@@ -6,8 +6,8 @@ import (
 
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 
-	"github.com/000Erick/synapse/internal/port"
-	"github.com/000Erick/synapse/internal/usecase"
+	"github.com/000Erick/engram-synapse/internal/port"
+	"github.com/000Erick/engram-synapse/internal/usecase"
 )
 
 // Deps holds dependencies for MCP tool handlers.

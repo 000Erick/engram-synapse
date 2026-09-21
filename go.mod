@@ -1,4 +1,4 @@
-module github.com/000Erick/synapse
+module github.com/000Erick/engram-synapse
 
 go 1.25.0
 
