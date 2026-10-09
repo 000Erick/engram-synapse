@@ -54,7 +54,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("backfill: %v", err)
 	}
-	fmt.Printf("backfill: embedded=%d skipped=%d failed=%d\n", res.Embedded, res.Skipped, res.Failed)
+	fmt.Printf("backfill: embedded=%d skipped=%d failed=%d failed_ids=%v\n", res.Embedded, res.Skipped, res.Failed, res.FailedIDs)
 
 	queries := os.Args[1:]
 	if len(queries) == 0 {
