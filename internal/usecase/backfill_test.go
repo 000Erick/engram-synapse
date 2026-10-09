@@ -3,11 +3,16 @@ package usecase
 import (
 	"context"
 	"errors"
+	"fmt"
 	"path/filepath"
+	"reflect"
+	"sort"
+	"strings"
 	"testing"
 
 	"github.com/000Erick/engram-synapse/internal/domain"
 	"github.com/000Erick/engram-synapse/internal/embed"
+	"github.com/000Erick/engram-synapse/internal/port"
 	"github.com/000Erick/engram-synapse/internal/store"
 )
 
@@ -130,5 +135,115 @@ func TestBackfill_EmbedErrorReported(t *testing.T) {
 	}
 	if res.Failed != 1 {
 		t.Errorf("failed = %d, want 1", res.Failed)
+	}
+}
+
+// poisonEmbedder rejects (port.ErrInputRejected) any call whose inputs contain
+// a "POISON" marker; otherwise it returns distinct vectors.
+func poisonEmbedder() *embed.MockEmbedder {
+	return &embed.MockEmbedder{
+		EmbedFn: func(inputs []string) ([][]float32, error) {
+			for _, in := range inputs {
+				if strings.Contains(in, "POISON") {
+					return nil, fmt.Errorf("openai: 400 too long: %w", port.ErrInputRejected)
+				}
+			}
+			out := make([][]float32, len(inputs))
+			for i := range inputs {
+				v := make([]float32, 3072)
+				v[0] = float32(i + 1)
+				out[i] = v
+			}
+			return out, nil
+		},
+	}
+}
+
+func makeObs(n int, poison ...int64) []domain.Observation {
+	bad := map[int64]bool{}
+	for _, id := range poison {
+		bad[id] = true
+	}
+	obs := make([]domain.Observation, n)
+	for i := range obs {
+		id := int64(i + 1)
+		c := fmt.Sprintf("content %d", id)
+		if bad[id] {
+			c = "POISON"
+		}
+		obs[i] = domain.Observation{ID: id, Title: fmt.Sprintf("t%d", id), Content: c}
+	}
+	return obs
+}
+
+func TestBackfill_RejectedInputIsIsolated(t *testing.T) {
+	st := newStore(t)
+	uc := NewBackfillUsecase(&mockReader{obs: makeObs(5, 3)}, st, poisonEmbedder(), "key", "m")
+
+	res, err := uc.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if res.Embedded != 4 || res.Failed != 1 {
+		t.Errorf("res = %+v, want embedded=4 failed=1", res)
+	}
+	if !reflect.DeepEqual(res.FailedIDs, []int64{3}) {
+		t.Errorf("FailedIDs = %v, want [3]", res.FailedIDs)
+	}
+	if n, _ := st.CountVectors(context.Background()); n != 4 {
+		t.Errorf("stored = %d, want 4", n)
+	}
+}
+
+func TestBackfill_MultipleRejectedInputs(t *testing.T) {
+	st := newStore(t)
+	uc := NewBackfillUsecase(&mockReader{obs: makeObs(6, 2, 5)}, st, poisonEmbedder(), "key", "m")
+
+	res, err := uc.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if res.Embedded != 4 || res.Failed != 2 {
+		t.Errorf("res = %+v, want embedded=4 failed=2", res)
+	}
+	got := append([]int64(nil), res.FailedIDs...)
+	sort.Slice(got, func(i, j int) bool { return got[i] < got[j] })
+	if !reflect.DeepEqual(got, []int64{2, 5}) {
+		t.Errorf("FailedIDs = %v, want [2 5]", got)
+	}
+}
+
+func TestBackfill_RejectionInFirstChunkDoesNotBlockLater(t *testing.T) {
+	st := newStore(t)
+	uc := NewBackfillUsecase(&mockReader{obs: makeObs(150, 7)}, st, poisonEmbedder(), "key", "m")
+
+	res, err := uc.Run(context.Background())
+	if err != nil {
+		t.Fatalf("Run: %v", err)
+	}
+	if res.Embedded != 149 || res.Failed != 1 || !reflect.DeepEqual(res.FailedIDs, []int64{7}) {
+		t.Errorf("res = %+v, want embedded=149 failed=1 ids=[7]", res)
+	}
+	if n, _ := st.CountVectors(context.Background()); n != 149 {
+		t.Errorf("stored = %d, want 149", n)
+	}
+}
+
+func TestBackfill_NonRejectionErrorStillAborts(t *testing.T) {
+	st := newStore(t)
+	emb := &embed.MockEmbedder{
+		EmbedFn: func(_ []string) ([][]float32, error) { return nil, errors.New("network") },
+	}
+	uc := NewBackfillUsecase(&mockReader{obs: makeObs(5)}, st, emb, "key", "m")
+
+	_, err := uc.Run(context.Background())
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if emb.CallCount() != 1 {
+		t.Errorf("Embed calls = %d, want 1", emb.CallCount())
+	}
+	if n, _ := st.CountVectors(context.Background()); n != 0 {
+		t.Errorf("stored = %d, want 0", n)
 	}
 }
