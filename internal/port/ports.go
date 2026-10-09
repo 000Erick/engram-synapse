@@ -2,6 +2,7 @@ package port
 
 import (
 	"context"
+	"errors"
 
 	"github.com/000Erick/engram-synapse/internal/domain"
 )
@@ -12,6 +13,11 @@ type EngramReader interface {
 	LiveIDs(ctx context.Context) ([]int64, error)
 	FTS(ctx context.Context, query string, k int) ([]domain.Ranked, error)
 }
+
+// ErrInputRejected is returned (wrapped) by an Embedder when the provider
+// rejects the request content itself (non-retryable 4xx such as 400/413/422),
+// so callers can isolate the offending inputs instead of aborting.
+var ErrInputRejected = errors.New("embed: input rejected by provider")
 
 // Embedder converts text batches into float32 embedding vectors.
 type Embedder interface {
