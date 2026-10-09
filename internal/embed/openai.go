@@ -11,6 +11,8 @@ import (
 	"math/rand"
 	"net/http"
 	"time"
+
+	"github.com/000Erick/engram-synapse/internal/port"
 )
 
 // ErrNoAPIKey is returned when an embedding is requested but no API key is set.
@@ -21,6 +23,12 @@ const (
 	defaultModel    = "text-embedding-3-large"
 	maxBatch        = 256
 	maxRetries      = 4
+
+	// defaultMaxInputChars is the per-input rune budget. text-embedding-3-*
+	// accept 8192 tokens per input. There is no tokenizer dependency, so we
+	// budget in runes conservatively: overflowing 8192 tokens with 16000 runes
+	// needs < ~2 chars/token, far below typical prose/markdown/code ratios.
+	defaultMaxInputChars = 16000
 )
 
 // OpenAIEmbedder calls the OpenAI embeddings API over HTTP.
@@ -29,7 +37,9 @@ type OpenAIEmbedder struct {
 	model    string
 	dims     int
 	endpoint string
-	client   *http.Client
+	// maxInputChars is the per-input rune budget; longer inputs are truncated.
+	maxInputChars int
+	client        *http.Client
 	// backoff returns the wait duration before retry attempt n (1-based).
 	// Overridable in tests to avoid real sleeps.
 	backoff func(attempt int) time.Duration
@@ -62,6 +72,34 @@ func WithDims(d int) Option {
 	}
 }
 
+// WithMaxInputChars overrides the per-input rune budget; inputs longer than n
+// runes are truncated before being sent. Non-positive values are ignored so
+// the default stays intact.
+func WithMaxInputChars(n int) Option {
+	return func(e *OpenAIEmbedder) {
+		if n > 0 {
+			e.maxInputChars = n
+		}
+	}
+}
+
+// truncateRunes returns s cut to at most max runes. It counts runes, not
+// bytes, and never splits a UTF-8 sequence. s is returned unchanged when it
+// fits the budget.
+func truncateRunes(s string, max int) string {
+	if len(s) <= max {
+		return s
+	}
+	n := 0
+	for i := range s {
+		if n == max {
+			return s[:i]
+		}
+		n++
+	}
+	return s
+}
+
 const (
 	backoffBase    = 250 * time.Millisecond
 	backoffMaxWait = 30 * time.Second
@@ -87,12 +125,13 @@ func NewOpenAIEmbedder(apiKey, model string, opts ...Option) *OpenAIEmbedder {
 		model = defaultModel
 	}
 	e := &OpenAIEmbedder{
-		apiKey:   apiKey,
-		model:    model,
-		dims:     defaultDims,
-		endpoint: defaultEndpoint,
-		client:  &http.Client{Timeout: 60 * time.Second},
-		backoff: defaultBackoff,
+		apiKey:        apiKey,
+		model:         model,
+		dims:          defaultDims,
+		maxInputChars: defaultMaxInputChars,
+		endpoint:      defaultEndpoint,
+		client:        &http.Client{Timeout: 60 * time.Second},
+		backoff:       defaultBackoff,
 	}
 	for _, o := range opts {
 		o(e)
@@ -124,6 +163,13 @@ func (e *OpenAIEmbedder) Embed(ctx context.Context, inputs []string) ([][]float3
 	if len(inputs) == 0 {
 		return [][]float32{}, nil
 	}
+
+	// Truncate on a copy so the caller's slice is never mutated.
+	trimmed := make([]string, len(inputs))
+	for i, in := range inputs {
+		trimmed[i] = truncateRunes(in, e.maxInputChars)
+	}
+	inputs = trimmed
 
 	out := make([][]float32, 0, len(inputs))
 	for start := 0; start < len(inputs); start += maxBatch {
@@ -188,6 +234,10 @@ func (e *OpenAIEmbedder) embedBatch(ctx context.Context, batch []string) ([][]fl
 			// 4xx other than 429 → fail fast
 			msg, _ := io.ReadAll(io.LimitReader(resp.Body, 2048))
 			resp.Body.Close()
+			switch resp.StatusCode {
+			case http.StatusBadRequest, http.StatusRequestEntityTooLarge, http.StatusUnprocessableEntity:
+				return nil, fmt.Errorf("embed: status %d: %s: %w", resp.StatusCode, string(msg), port.ErrInputRejected)
+			}
 			return nil, fmt.Errorf("embed: status %d: %s", resp.StatusCode, string(msg))
 		}
 	}
